@@ -1,0 +1,302 @@
+<html>
+
+<head>
+<title>Widgets</title>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+<meta content="width=device-width, initial-scale=1" name="viewport" />
+<script src="scripts/jquery-3.3.1.min.js"></script>
+<script src="config/config.js"></script>
+<script>
+	
+	var dateMsg = "";
+	var dataMessage = {};
+	var reqChat = {};
+	var oChat;
+	var oChatStart = false;
+	var timeEng;
+  var typing;
+	
+	window.onload = function() {
+		
+		for(var i=0;i<wgScript.length;i++){
+			var oScript = wgScript[i],oTag;
+			if(wgAction.getElementById(oScript.id)) return;
+			oTag = wgAction.createElement(oScript.type); oTag.id = oScript.id;
+			if(oScript.type == "script"){
+				oTag.src = oScript.path;
+			} else if(oScript.type == "link"){
+				oTag.type = 'text/css';oTag.rel = 'stylesheet';oTag.href = oScript.path; 
+			}
+			wgAction.head.appendChild(oTag);	
+		}
+		
+		setTimeout(function(){
+			readConfig(wgLanguage);
+		},timeReadCsv);
+		
+				
+	}
+	
+	function readConfig(lang){
+		readWgMessageClient(lang,"messageresponse");
+		readWgMessageClient(lang,"userintention");
+	}
+	function openForm(){
+		
+		if(!$("#"+wgChatboxId).hasClass("hide")){
+			return;	
+		}
+		
+		$("#"+wgChatboxId).removeClass("hide");
+		
+		createMessage(wgMsgMari,dataMessage["Greeting"]);
+		createBtnInChat(wgBtnEng);
+		timeEng = setTimeout(function(){ afterSelectLanguage();}, timeoutEng);
+	}
+	
+	function afterSelectLanguage(){
+		removeBtnInChat(wgBtnEng["id"]);
+		setTimeout(function(){
+			var userIntent = createUserIntention(prodIntention)
+			displayUserIntention(wgMsgMari,userIntent);
+		},timeReadCsv);
+		createBtnInChat(wgBtnRequestChat);
+	}
+	
+	function createMessageExternal(msgFrom,msgText){
+      createDateMsg();
+      var liObj = document.createElement('li');
+      liObj.id = "li"+document.getElementById("ul-history").childNodes.length;
+      liObj.innerHTML = "</div><center><div class='message-smallbox'><div class='message-smallbox-head'>"+msgFrom+"  |  "+dateMsg+"</div><div class='message-smallbox-body'>"+msgText+"</div></div></center>";
+      document.getElementById("ul-history").appendChild(liObj);     
+      focusScroll();
+	}
+	
+	function clearTimeEng(){
+		clearTimeout(timeEng);
+	}
+	
+	function closeForm(){
+		
+		if(oChatStart){
+			openConfirmEnd();
+		} else{
+			clearChatbox();
+		}
+	}
+	
+	function clearChatbox(){
+		$("#wgChatbox").addClass("hide");
+		$("#ul-history").empty();
+		clearTimeEng();
+		closeConfirmEnd();
+	}
+	
+	function openConfirmEnd(){
+		$(".comfirm-end-background").removeClass("hide");
+		$(".comfirm-end-box").removeClass("hide");
+		$('.comfirm-end-inside span').text("Do you want to end chat?");
+		$('.comfirm-end-inside button[name="btn-cancel"]').text("Cancel");
+		$('.comfirm-end-inside button[name="btn-end"]').text("End Chat");
+	}
+	
+	function closeConfirmEnd(){
+		$(".comfirm-end-background").addClass("hide");
+		$(".comfirm-end-box").addClass("hide");
+	}
+	
+	function createBtnReqChat(){
+		var liObj = document.createElement('li');
+		liObj.id = "li"+document.getElementById("ul-history").childNodes.length;
+		liObj.innerHTML = "<center><button type='button' class='btn-in-chat' id='btn-reqchat' onclick='requestChat();'>Request Chat</button></center>";
+		document.getElementById("ul-history").appendChild(liObj);     
+		focusScroll();
+	}
+	
+	function sendMsg(){
+		
+		var text = $('textarea[name=messagechat]').val().replace(/\n/g, "");
+		$('textarea[name=messagechat]').val("");
+		if(text.trim() == ""){
+			return false;
+		}
+		
+		if(!oChatStart){
+			$("input[name=subject]").val(text);
+			createMessage(wgMsgCustomer,text);
+		} else{
+			oChat.sendMessage(text);
+		}
+
+		
+	}
+	
+	function isBlankSetAnonymous(val){
+		var ret = val;
+		if( ret == "") ret = "Anonymous";
+		return ret;
+	}
+	
+	
+	
+	function selectProductService(pin,txt){
+		var v = pin.split("-");
+		createMessage(wgMsgCustomer,txt);
+		$("input[name=product]").val(v[0]);
+		$("input[name=service]").val(v[1]);
+		$("input[name=subject]").val(txt);
+		
+	}
+
+	function requestChat(){
+		$("input[name=firstName]").val(isBlankSetAnonymous($('input[name=firstName]').val()));
+		$("input[name=lastName]").val(isBlankSetAnonymous($('input[name=lastName]').val()));
+		var formchat = $('#formchat').serialize();
+		oChat = new ChatFactory({
+			<!-- baseURL: "https://galb.truecorp.co.th", -->
+			<!-- chatServiceName: "gms-chat", -->
+			baseURL: "http://172.30.181.15:8080",
+			chatServiceName: "gms-chat",
+			useCometD: false,
+			verbose: true,
+			onStarted: onStarted,
+			onEnded: onEnded,
+			<!-- onFileSent: onFileSent, -->
+			onMessageReceived: onMessageReceived,
+			//onFileReceived: onFileReceived,
+			onError: onError
+		});
+		// Start the chat using the variable in form.
+		oChat.startChat(formchat);
+	}
+	
+	// The Chat class will call onStarted when the chat session has been successfully created
+	function onStarted() {
+		oChatStart = true;
+	}
+	
+	// The Chat class will call onEnded when the chat session has ended
+	function onEnded() {
+		oChatStart = false;
+	}
+  
+  function onMessageReceived(typeFrom,typeMsg,nickname,textMsg) {
+		
+		var msg = "";
+		
+		if ( typeMsg === 'Message' || typeMsg === 'Message.Text' ) {
+			msg = textMsg;
+		} else if ( typeMsg === 'ParticipantJoined' || typeMsg === 'Notice.Joined') {
+			msg = "joined the chat";
+		} else if ( typeMsg === 'ParticipantLeft' || typeMsg === 'Notice.Left') {
+			msg = "left the chat";
+		} else if ( typeMsg === 'PushUrl' || typeMsg === 'PushUrl.Text' ) {
+			msg = "<a href='"+textMsg+"'>"+textMsg+"</a>";
+		}
+    
+    if(typeFrom === "Agent" && typeMsg === "TypingStarted"){
+      if(!document.getElementById('liAgentTyping')){
+        //createMessageAgentTyping();
+      }
+      return false;
+    }
+    
+    if(typeFrom === "Agent" && typeMsg === "TypingStopped"){
+      //removeMessageAgentTyping();
+      return false;
+    }
+    
+		if(typeFrom === "Client"){
+			createMessage(wgMsgCustomer,msg); 
+		} else if(typeFrom === "Agent"){
+      removeMessageAgentTyping();
+			createMessage(wgMsgAgent,msg);
+		} else if(typeFrom === "External"){
+			createMessage(wgMsgMari,msg);
+		}
+	}
+  
+  function onFileReceived(typeFrom,nickname,textMsg) {
+		
+		var msg = "";
+		<!-- fileid -->
+    <!-- filesize -->
+		<!-- cx-filename -->
+    //FileUploaded
+    <!-- message : {"from":{"nickname":"Kristi Sippola","participantId":2,"type":"Agent"},"index":9,"text":"00CF5C32E428003D","type":"FileUploaded","utcTime":1546839080000,"userData":{"file-document-id":"0042WaE35DB20026","file-source":"ucs","file-upload-path":"C:\\Users\\Administrator\\Desktop\\New Microsoft Office Word Document.docx","file-id":"00CF5C32E428003D","file-upload-type":"file-system","file-size":"9998","file-name":"New Microsoft Office Word Document.docx"}} -->
+    
+		if(typeFrom === "Client"){
+			createMessageWhite("You",msg); 
+		} else if(typeFrom === "Agent"){
+      removeMessageAgentTyping();
+			createMessageBlack("Agent",msg);
+		} else if(typeFrom === "External"){
+			createMessageBlack(nickname,msg);
+		}
+	}
+	
+	// The chat class will call onError when an error occurs for any reason
+	function onError(err) {
+		alert(err);
+	}
+	
+	function endChat(){
+		oChat.endChat();
+		clearChatbox();
+		oChatStart = false;
+	}
+	
+	$(document).on('keypress','textarea[name=messagechat]',function(e) { 
+		if ( e.which == 13 ) {
+			e.preventDefault();sendMsg();
+		} 
+	});
+	
+	
+	
+</script>
+</head>
+<body>
+	<button class="openbutton" onclick="openForm()" id='chat'>Chat</button><br>
+	
+	<form id="formchat">
+		<input type="hidden" name="firstName"/>
+		<input type="hidden" name="lastName"/>
+		<input type="hidden" name="subject"/>
+		<input type="hidden" name="product"/>
+		<input type="hidden" name="service"/>
+		<input type="hidden" name="service_number"/>
+		<input type="hidden" name="langChat" value="th"/>
+
+		<div id="wgChatbox" class="wgChatbox hide">
+			<div class="comfirm-end-background hide"></div>
+			<div class="comfirm-end-box hide">
+				<div class="comfirm-end-inside">
+					<p><span name="text-comfirm-end"></span></p>
+					<button type='button' class='btn-in-chat' name="btn-cancel" onclick='closeConfirmEnd();'>YES</button>&nbsp;&nbsp;
+					<button type='button' class='btn-in-chat' name="btn-end" onclick='endChat();'></button>
+				</div>
+			</div>
+			<div class="wgChatbox-head">
+				<span class="span1"><span class="span1-1"><img src="img/mari.png"></span></span>
+				<span class="span2"><span class="span2-1">Live Chat</span></span>
+				<span class="span3"><span class="span3-1" onclick="closeForm();">X</span></span>
+			</div>
+			<div class="wgChatbox-body">
+				<div id="chat-history" class="chat-history">
+					<ul id="ul-history" class="ul-history"></ul>
+				</div>
+			</div>
+			<div class="wgChatbox-footer">
+				<span class="span1"></span>
+				<span class="span2"><textarea placeholder="Type your massage" name="messagechat" rows="1"></textarea></span>
+				<span class="span3">
+					<button type='button' class="btn-none-style" onclick='sendMsg();'>
+						<img src="img/cursor.png"/>
+					</button>
+				</span>
+			</div>
+		</div>
+	</form>
+</body>
+</html>

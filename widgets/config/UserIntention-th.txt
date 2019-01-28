@@ -1,0 +1,4 @@
+picture,titlevalue,titletext,choicevalue1,choicetext1,choicevalue2,choicetext2,choicevalue3,choicetext3
+TMH-Main.png,TMH,มือถือ ทรูมูฟเอช,BILL,ขอรายละเอียดค่าบริการมือถือ,TECH,เน็ตมือถือใช้ไม่ได้ หรือโทรออกไม่ได้,PROMO,อยากเปลี่ยนโปรโมชั่นมือถือ
+TOL-Main.png,TOL,อินเทอร์เน็ตบ้าน ทรูออนไลน์,BILL,ขอรายละเอียดค่าบริการเน็ตบ้าน,TECH,เน็ตบ้านสัญญาณไม่ดี,PROMO,เปลี่ยนแพ็กเกจ/ปรับสปีดเน็ตบ้าน
+TVS-Main.png,TVS,เคเบิลทีวี ทรูวิชั่นส์,BILL,ขอรายละเอียดบิลค่าบริการทรูวิชั่นส์,TECH,ดูทีวีไม่ได้,PROMO,เปลี่ยนแพ็กเกจ/เพิ่มช่องทรูวิชั่นส์
