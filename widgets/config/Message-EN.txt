@@ -1,0 +1,20 @@
+Greeting,สวัสดีค่ะ ทรูแคร์แชทยินดีให้บริการค่ะ . Hello welcome to True Care Chat service. 
+startchat,"Please select the service you need from the options below. You may scroll left/right to view or select a specific product. If you cannot find the service that you require on the menu, please type in your request." 
+TypeIntention,Please type in your service request or question e.g. balance enquiry of mobile no. 0912345678. 
+Outofwork,Our operating hours are from 8 am to 11 pm. Please contact us again during operating hours. Sorry for the inconvenience this may have caused. 
+queueparttern1,Your queue is 
+queueparttern2,Have queue before you is 
+queueparttern3,Please click button if you wanna be chat with Agent. 
+SystemMessageinformEWT,Estimate wait time to chat is 15 minutes. 
+AskSMS,Please identify TrueMove H mobile number to receive an SMS alert when you are first in the queue. 
+ConfirmSMSnumber,SMS alert will be sent to 
+Textsent,Type your message... 
+ChatStarted,The system will transfer your information to an agent, please wait for a moment. 
+btn_start,Start Chat 
+btn_cancel,Cancel 
+SmsY,Send 
+SmsN,Cancel
+typing,typing...
+Joinedchat,Joined In Chat
+DownloadButton,DownloadButton
+Leftchat,Left the chat

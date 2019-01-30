@@ -1,0 +1,22 @@
+Greeting,สวัสดีค่ะ ทรูแคร์แชทยินดีให้บริการค่ะ . Hello welcome to True Care Chat service.
+startchat,คุณสามารถเลือกเมนูลัดด้านล่าง หรือหากต้องการติดต่อเรื่องนอกเหนือจากนี้ กรุณาพิมพ์เรื่องที่ต้องการ
+TypeIntention,พิมพ์เรื่องที่ต้องการขอรับบริการได้เลยค่ะ เช่น สอบถามยอดค้าง มือถือ เบอร์ 0912345678
+Outofwork,Our operating hours are from 8 am to 11 pm. Please contact us again during operating hours. Sorry for the inconvenience this may have caused.
+queueparttern1,คุณเป็นคนที่ 
+queueparttern2,มีคิวก่อนหน้าคุณ
+queueparttern3,คิว กรุณากดปุ่มจองคิว หากต้องการสนทนากับเจ้าหน้าที่
+SystemMessageinformEWT,รอสักครู่นะคะ เวลารอโดยประมาณคือ 15 นาทีค่ะ
+AskSMS,กรอกเบอร์โทรศัพท์ทรูมูฟเอช เพื่อให้ระบบส่ง SMS แจ้งเตือนเมื่อใกล้ถึงคิวของคุณ
+ConfirmSMSnumber,เมื่อใกล้ถึงคิวของคุณ ระบบจะส่ง SMS แจ้งเตือนไปที่เบอร์ 
+ChatStarted, ระบบกำลังส่งข้อมูลไปยังเจ้าหน้าที่นะคะ
+endchat,ขอบคุณที่ใช้บริการทรู แคร์ แชทค่ะ
+startchat1,พิมพ์ข้อความที่นี
+btn_start,จองคิว
+btn_cancel,ยกเลิก
+SmsY,ส่ง
+SmsN,ยกเลิก
+Textsent,พิมพ์ข้อความที่นี่...
+typing,กำลังพิมพ์
+Joinedchat,เข้าสู่การสนทนา
+DownloadButton,ดาวน์โหลด
+Leftchat,ออกจากการสนทนา

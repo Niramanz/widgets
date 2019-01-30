@@ -1,0 +1,4 @@
+picture,titlevalue,titletext,choicevalue1,choicetext1,choicevalue2,choicetext2,choicevalue3,choicetext3
+TMH-Main.png,TMH,Mobile Service,BILL,Billing and payment,TECH,Technical difficulties or network,PROMO,Promotion Enquiry
+TOL-Main.png,TOL,Internet,BILL,Billing and payment,TECH,Technical difficulties or network,PROMO,Promotion Enquiry
+TVS-Main.png,TVS,Cable TV,BILL,Billing and payment,TECH,Technical difficulties or network,PROMO,Promotion Enquiry

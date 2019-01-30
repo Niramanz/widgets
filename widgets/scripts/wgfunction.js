@@ -114,6 +114,7 @@ function processData(dataArr){
 		var temp = element.split(",");
 		dataMessage[temp[0]] = temp[1]; 
 	});
+	console.log(dataMessage);
 }
 	
 function processUserIntention(dataArr){
@@ -170,25 +171,42 @@ function createUserIntention(pi){
 	return styleProdIntention;
 }
 
- function createMessageAgentTyping(msgFrom){
-	createDateMsg();
-	var liObj = document.createElement('li');
-	liObj.id = "liAgentTyping";
-	liObj.innerHTML = "<div class='message-data'><img src='img/mari.png'><span class='message-data-name'>Agent</span>&nbsp;&nbsp;<span class='message-data-time'>"+dateMsg+"</span></div><div class='message my-message'>"+dataMessage["agentTyping"]+"</div>";
-	document.getElementById("ul-history").appendChild(liObj);     
-	focusScroll();
+function typingMessage(msgFrom,msgText){
+	wgDateMessage = createWgDateMessage();
+	var listChat  = wgAction.createElement(tagList);
+	listChat.id   = tagList + "Typing";
+	
+	var template = "<div class='"+msgFrom["headclass"]+"'>";
+	if(msgFrom["position"] == "right"){
+		template+= "	<span class='"+msgFrom["timeclass"]+"'>"+wgDateMessage+"</span>"
+				+  "	<span class='"+msgFrom["headnameclass"]+"'>"+msgFrom["name"]+"</span>"
+				;
+	} else{
+		template+= "	<img src='"+msgFrom["img"]+"'>"
+				+  "	<span class='"+msgFrom["headnameclass"]+"'>"+msgFrom["name"]+"</span>"
+				+  "	<span class='"+msgFrom["timeclass"]+"'>"+wgDateMessage+"</span>"
+				;
+	}
+	
+	template += "</div>"
+			 + "<div class='"+msgFrom["bodyclass"]+"'>"+msgText+"</div>"
+			 ;
+			 
+	listChat.innerHTML = template;				   
+	wgAction.getElementById(wgUlChatId).appendChild(listChat);
+	focusScrollwgChatbox();
 }
   
-function removeMessageAgentTyping(){
-	if(document.getElementById('liAgentTyping')){
-		document.getElementById('liAgentTyping').parentNode.removeChild(document.getElementById('liAgentTyping'));
+function removeTyping(){
+	if(document.getElementById('liTyping')){
+		document.getElementById('liTyping').parentNode.removeChild(document.getElementById('liTyping'));
 	}  
-	focusScroll();
+	focusScrollwgChatbox();
 }
 
-$(document).on('click touchstart','#prev',     function() { $('.ul-gc').animate({scrollLeft: "-="+$('.ul-gc').width()}, 500, 'swing');});
-$(document).on('click touchstart','#next',     function() { $('.ul-gc').animate({scrollLeft: "+="+$('.ul-gc').width()}, 500, 'swing');});
-$(document).on('click touchstart','.dv-button',function() { selectProductService(this.id,$(this).text()); });
+$(document).on('click','#prev',     function() { console.log($('.ul-gc').width());$('.ul-gc').animate({scrollLeft: "-="+$('.ul-gc').width()}, 500, 'swing');});
+$(document).on('click','#next',     function() { console.log($('.ul-gc').width());$('.ul-gc').animate({scrollLeft: "+="+$('.ul-gc').width()}, 500, 'swing');});
+$(document).on('click','.dv-button',function() { selectProductService(this.id,$(this).text()); });
 
 
 

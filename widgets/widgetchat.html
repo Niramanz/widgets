@@ -10,12 +10,9 @@
 	
 	var dateMsg = "";
 	var dataMessage = {};
-	var reqChat = {};
 	var oChat;
 	var oChatStart = false;
-	var timeEng;
-  var typing;
-	
+	var timeEng;	
 	window.onload = function() {
 		
 		for(var i=0;i<wgScript.length;i++){
@@ -59,8 +56,8 @@
 		setTimeout(function(){
 			var userIntent = createUserIntention(prodIntention)
 			displayUserIntention(wgMsgMari,userIntent);
+			createBtnInChat(wgBtnRequestChat);
 		},timeReadCsv);
-		createBtnInChat(wgBtnRequestChat);
 	}
 	
 	function createMessageExternal(msgFrom,msgText){
@@ -90,6 +87,8 @@
 		$("#ul-history").empty();
 		clearTimeEng();
 		closeConfirmEnd();
+		wgLanguage = "TH";
+		readConfig(wgLanguage);
 	}
 	
 	function openConfirmEnd(){
@@ -163,8 +162,9 @@
 			onEnded: onEnded,
 			<!-- onFileSent: onFileSent, -->
 			onMessageReceived: onMessageReceived,
-			//onFileReceived: onFileReceived,
-			onError: onError
+			onFileReceived: onFileReceived,
+			onError: onError,
+			onDownloadFile:onDownloadFile
 		});
 		// Start the chat using the variable in form.
 		oChat.startChat(formchat);
@@ -187,52 +187,77 @@
 		if ( typeMsg === 'Message' || typeMsg === 'Message.Text' ) {
 			msg = textMsg;
 		} else if ( typeMsg === 'ParticipantJoined' || typeMsg === 'Notice.Joined') {
-			msg = "joined the chat";
+			msg = dataMessage["Joinedchat"];
 		} else if ( typeMsg === 'ParticipantLeft' || typeMsg === 'Notice.Left') {
-			msg = "left the chat";
+			msg = dataMessage["Leftchat"];
 		} else if ( typeMsg === 'PushUrl' || typeMsg === 'PushUrl.Text' ) {
 			msg = "<a href='"+textMsg+"'>"+textMsg+"</a>";
 		}
     
     if(typeFrom === "Agent" && typeMsg === "TypingStarted"){
-      if(!document.getElementById('liAgentTyping')){
-        //createMessageAgentTyping();
-      }
+		if(!document.getElementById('liAgentTyping')){
+			typingMessage(wgMsgAgent,dataMessage["typing"]);
+		}
       return false;
     }
     
     if(typeFrom === "Agent" && typeMsg === "TypingStopped"){
-      //removeMessageAgentTyping();
-      return false;
+		removeTyping();
+		return false;
     }
     
 		if(typeFrom === "Client"){
+			if(msg == dataMessage["Joinedchat"])return;
 			createMessage(wgMsgCustomer,msg); 
 		} else if(typeFrom === "Agent"){
-      removeMessageAgentTyping();
+			removeTyping();
+			createMessage(wgMsgAgent,msg);
+		} else if(typeFrom === "External"){
+			if(msg == dataMessage["Joinedchat"])return;
+			createMessage(wgMsgMari,msg);
+		}
+	}
+  
+	function onFileReceived(typeFrom,nickname,udata) {
+		
+		var msg = "";
+		var filesize = (parseInt(udata["file-size"])/1024).toFixed(2);
+		//message : {"from":{"nickname":"agent","participantId":2,"type":"Agent"},"index":10,"text":"00D25C4FD5580141","type":"FileUploaded","utcTime":1548735832000,"userData":{"file-document-id":"0002KaE4JJ9Y00BX","file-source":"ucs","file-upload-path":"C:\\Users\\Administrator\\Desktop\\New Text Document.txt","file-id":"00D25C4FD5580141","file-upload-type":"file-system","file-size":"438","file-name":"New Text Document.txt"}}
+		msg = udata["file-name"]
+			+ "<br/>"
+			+ filesize+" KB"
+			+ "<br/>"
+			+ "<center>"
+			+ "<button type='button' class='btn-in-chat' "
+			+ "value='"+udata["file-id"]+"' "
+			+ "onclick='downloadfile(this.value,\""+udata["file-name"]+"\")' "
+			+ ">"+dataMessage["DownloadButton"]+"</button>"
+			+ "</center>"
+			;
+		
+		if(typeFrom === "Client"){
+			createMessage(wgMsgCustomer,msg); 
+		} else if(typeFrom === "Agent"){
+			removeTyping();
 			createMessage(wgMsgAgent,msg);
 		} else if(typeFrom === "External"){
 			createMessage(wgMsgMari,msg);
 		}
 	}
-  
-  function onFileReceived(typeFrom,nickname,textMsg) {
-		
-		var msg = "";
-		<!-- fileid -->
-    <!-- filesize -->
-		<!-- cx-filename -->
-    //FileUploaded
-    <!-- message : {"from":{"nickname":"Kristi Sippola","participantId":2,"type":"Agent"},"index":9,"text":"00CF5C32E428003D","type":"FileUploaded","utcTime":1546839080000,"userData":{"file-document-id":"0042WaE35DB20026","file-source":"ucs","file-upload-path":"C:\\Users\\Administrator\\Desktop\\New Microsoft Office Word Document.docx","file-id":"00CF5C32E428003D","file-upload-type":"file-system","file-size":"9998","file-name":"New Microsoft Office Word Document.docx"}} -->
-    
-		if(typeFrom === "Client"){
-			createMessageWhite("You",msg); 
-		} else if(typeFrom === "Agent"){
-      removeMessageAgentTyping();
-			createMessageBlack("Agent",msg);
-		} else if(typeFrom === "External"){
-			createMessageBlack(nickname,msg);
-		}
+	
+	function downloadfile(fileid,filename){
+		oChat.downloadfileChat(fileid,filename);
+	}
+	
+	function onDownloadFile(data,filename){
+		var a = document.createElement('a');
+		var spt = filename.split(".");
+		var blob = data;
+		var url = window.URL.createObjectURL(blob);
+		a.href = url;
+		a.download = filename;
+		a.click();
+		window.URL.revokeObjectURL(url);
 	}
 	
 	// The chat class will call onError when an error occurs for any reason
@@ -244,7 +269,11 @@
 		oChat.endChat();
 		clearChatbox();
 		oChatStart = false;
+		wgLanguage = "TH";
+		readConfig(wgLanguage);
 	}
+	
+	
 	
 	$(document).on('keypress','textarea[name=messagechat]',function(e) { 
 		if ( e.which == 13 ) {

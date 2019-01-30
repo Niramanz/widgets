@@ -27,6 +27,10 @@ var ChatFactory = function(config) {
 		
 		sendMessage: function(message) {
 			this._chatapi.sendMessage(message);
+		},
+		
+		downloadfileChat: function(fileId,fileName) {
+			this._chatapi.downloadfileChat(fileId,fileName);
 		}
 	}
 	
@@ -208,7 +212,7 @@ Chat.createAPIv2 = function(config) {
 			
 			me._chatRefreshIntervalId = setInterval( function() {
 				me._refreshChat();
-			}, 5000);
+			}, 2000);
 		},
 		
 		// Stop the interval object from making 'refresh' requests		
@@ -243,14 +247,10 @@ Chat.createAPIv2 = function(config) {
 			
 				// For each item in the transcript...
 				$.each(response.messages, function(index, message) {
-				
-					// Call the onMessageReceived of the listener with the 'type', 'nickname', and 'message'
+
 					console.log("message : "+JSON.stringify(message));	
-					// console.log("message.type  : "+message.type);
-					// console.log("message.nickname  : "+message.from.nickname);
-					// console.log("message.text  : "+message.text);
                     if(message.type === "FileUploaded"){
-                        //me._config.onFileReceived(message.from.type, message.from.nickname, message.text);
+                        me._config.onFileReceived(message.from.type, message.from.nickname,message.userData);
                     } else{
                         me._config.onMessageReceived(message.from.type,message.type, message.from.nickname, message.text);
                     }
@@ -264,6 +264,31 @@ Chat.createAPIv2 = function(config) {
 				}
 			}).fail(function(xhr, status, err) {
 				me._config.onError('Unable to refresh chat session');
+			});
+		},
+		
+		downloadfileChat: function(fileId,fileName){
+			var me = this;
+			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/'+fileId+'/download';
+			$.ajax({
+					type: 'POST',
+					url: url,
+					contentType: 'application/x-www-form-urlencoded',
+					data: params,
+					xhrFields:{
+						responseType: 'blob'
+					}
+			}).done(function(response, status, xhr) {
+				if ( me._config.debug === true ) {
+					console.log("downloadfile response: ");
+					console.log(response);
+				}
+				
+				me._config.onDownloadFile(response,fileName);
+				
+			}).fail(function(xhr, status, err) {
+				me._config.onError('downloadfile error');
 			});
 		}
     });
