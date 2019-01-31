@@ -31,6 +31,14 @@ var ChatFactory = function(config) {
 		
 		downloadfileChat: function(fileId,fileName) {
 			this._chatapi.downloadfileChat(fileId,fileName);
+		},
+		
+		getlimitfileChat: function() {
+			this._chatapi.getlimitfileChat();
+		},
+		
+		uploadfileChat: function(fileup) {
+			this._chatapi.uploadfileChat(fileup);
 		}
 	}
 	
@@ -109,36 +117,32 @@ Chat.createAPIv2 = function(config) {
         	var me = this;
         	
         	var url = me._config.baseURL + '/chat/' + me._config.chatServiceName;
-
-			$.ajax({
-					type: 'POST',
-					url: url,
-					contentType: 'application/x-www-form-urlencoded',
-					data: formchat
-			}).done(function(response, status, xhr) {
-				if ( me._config.debug === true ) {
-					console.log("startChat response: ");
-					console.log(response);
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200) {
+					if ( me._config.debug === true ) {
+						console.log("startChat response -> "+JSON.stringify(request.response));
+					}
+					me._chatId = request.response.chatId;
+					me._userId = request.response.userId;
+					me._secureKey = request.response.secureKey;
+					me._alias = request.response.alias;
+					
+					// Save off the transcript position
+					me._transcriptPosition = 1;
+					
+					// Let listeners know that the chat session started successfully
+					me._config.onStarted();
+					
+					// Start the interval polling for transcript updates
+					me._startChatRefresh();
+					me._refreshChat();
 				}
-				
-				// The four values are required for subsequent requests
-				me._chatId = response.chatId;
-				me._userId = response.userId;
-				me._secureKey = response.secureKey;
-				me._alias = response.alias;
-				
-				// Save off the transcript position
-				me._transcriptPosition = 1;
-				
-				// Let listeners know that the chat session started successfully
-				me._config.onStarted();
-				
-				// Start the interval polling for transcript updates
-				me._startChatRefresh();
-				me._refreshChat();
-			}).fail(function(xhr, status, err) {
-				me._config.onError('Unable to create chat session: ' + xhr.responseJSON.errors[0].advice);
-			});
+			}
+			request.send(formchat);
         },
         
         // End the chat session
@@ -149,33 +153,30 @@ Chat.createAPIv2 = function(config) {
         	// Populate the parameters and URL
 			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/disconnect';
-
-			$.ajax({
-					type: 'POST',
-					url: url,
-					contentType: 'application/x-www-form-urlencoded',
-					data: params
-			}).done(function(response, status, xhr) {
-				if ( me._config.debug === true ) {
-					console.log( "endChat response: ");
-					console.log(response);
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("endChat response -> "+JSON.stringify(request.response));
+					}
+					// Stop the interval polling for transcript updates
+					me._stopChatRefresh();
+					
+					// Clear out the session values
+					me._chatId = request.response.chatId;
+					me._userId = request.response.userId;
+					me._secureKey = request.response.secureKey;
+					me._alias = request.response.alias;
+					me._transcriptPosition = 1;
+					
+					// Let the listeners know that the chat has ended
+					me._config.onEnded();
 				}
-				
-				// Stop the interval polling for transcript updates
-				me._stopChatRefresh();
-				
-				// Clear out the session values
-				me._chatId = response.chatId;
-				me._userId = response.userId;
-				me._secureKey = response.secureKey;
-				me._alias = response.alias;
-				me._transcriptPosition = 1;
-				
-				// Let the listeners know that the chat has ended
-				me._config.onEnded();
-			}).fail(function(xhr, status, err) {
-				me._config.onError('Unable to end chat session');
-			});
+			}
+			request.send(params);
         },
         
         // Send a message
@@ -186,23 +187,18 @@ Chat.createAPIv2 = function(config) {
         	// Populate the parameters and URL
 			var params = 'message=' + message + '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/send';
-
-			$.ajax({
-					type: 'POST',
-					url: url,
-					contentType: 'application/x-www-form-urlencoded',
-					data: params
-			}).done(function(response, status, xhr) {
-				if ( me._config.debug === true ) {
-					console.log("sendMessage response: ");
-					console.log(response);
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("sendMessage response -> "+JSON.stringify(request.response));
+					}
 				}
-				
-				// Let listeners know that the message was sent successfully
-				//me._config.onMessageSent(message);
-			}).fail(function(xhr, status, err) {
-				me._config.onError('Unable to send message');
-			});
+			}
+			request.send(params);
         },
         
 		// Start an interval object to make 'refresh' requests at 5 second intervals
@@ -230,66 +226,108 @@ Chat.createAPIv2 = function(config) {
 			
 			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&transcriptPosition=' + me._transcriptPosition;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/refresh';
-
-			$.ajax({
-					type: 'POST',
-					url: url,
-					contentType: 'application/x-www-form-urlencoded',
-					data: params
-			}).done(function(response, status, xhr) {
-				if ( me._config.debug === true ) {
-					console.log("refreshChat response: ");
-					console.log(response);
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("_refreshChat response -> "+JSON.stringify(request.response));
+					}
+					// Update the transcript position
+					me._transcriptPosition = request.response.nextPosition;
+					// For each item in the transcript...
+					$.each(request.response.messages, function(index, message) {
+						console.log("message : "+JSON.stringify(message));	
+						if(message.type === "FileUploaded"){
+							me._config.onFileReceived(message.from.type, message.from.nickname,message.userData);
+						} else{
+							me._config.onMessageReceived(message.from.type,message.type, message.from.nickname, message.text);
+						}
+					});
+					
+					// If the chat has ended, perhaps by the agent ending the chat, then
+					// stop the interval object from polling for transcript updates
+					if ( request.response.chatEnded == true ) {
+						me._stopChatRefresh();
+						me._config.onEnded()
+					}
 				}
-
-				// Update the transcript position
-				me._transcriptPosition = response.nextPosition;
+			}
+			request.send(params);
 			
-				// For each item in the transcript...
-				$.each(response.messages, function(index, message) {
-
-					console.log("message : "+JSON.stringify(message));	
-                    if(message.type === "FileUploaded"){
-                        me._config.onFileReceived(message.from.type, message.from.nickname,message.userData);
-                    } else{
-                        me._config.onMessageReceived(message.from.type,message.type, message.from.nickname, message.text);
-                    }
-				});
-				
-				// If the chat has ended, perhaps by the agent ending the chat, then
-				// stop the interval object from polling for transcript updates
-				if ( response.chatEnded == true ) {
-					me._stopChatRefresh();
-					me._config.onEnded()
-				}
-			}).fail(function(xhr, status, err) {
-				me._config.onError('Unable to refresh chat session');
-			});
 		},
 		
 		downloadfileChat: function(fileId,fileName){
 			var me = this;
 			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/'+fileId+'/download';
-			$.ajax({
-					type: 'POST',
-					url: url,
-					contentType: 'application/x-www-form-urlencoded',
-					data: params,
-					xhrFields:{
-						responseType: 'blob'
+			const request = new XMLHttpRequest();
+			request.responseType = "blob";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("downloadfileChat response -> "+JSON.stringify(request.response));
 					}
-			}).done(function(response, status, xhr) {
-				if ( me._config.debug === true ) {
-					console.log("downloadfile response: ");
-					console.log(response);
+					
+					me._config.onDownloadFile(request.response,fileName);
 				}
-				
-				me._config.onDownloadFile(response,fileName);
-				
-			}).fail(function(xhr, status, err) {
-				me._config.onError('downloadfile error');
-			});
-		}
+			}
+			request.send(params);
+		},
+		
+		// getlimitfileChat: function() {
+        
+        	// var me = this;
+        
+        	// // Populate the parameters and URL
+			// var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
+			// var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/limits';
+	
+			// $.ajax({
+					// type: 'POST',
+					// url: url,
+					// contentType: 'application/x-www-form-urlencoded',
+					// data: params
+			// }).done(function(response, status, xhr) {
+				// if ( me._config.debug === true ) {
+					// console.log("getlimitfileChat response: ");
+					// console.log(response);
+				// }
+				// console.log(response);
+				// console.log(JSON.stringify(response));
+		
+			// }).fail(function(xhr, status, err) {
+				// me._config.onError('Unable to send getlimitfile');
+			// });
+        // },
+		
+		// uploadfileChat: function(fileup){
+			// var me = this;
+			
+			// var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&file=' + fileup;
+			// var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file';
+			
+			// $.ajax({
+					// type: 'POST',
+					// url: url,
+					// contentType: 'application/x-www-form-urlencoded',
+					// data: params
+			// }).done(function(response, status, xhr) {
+				// if ( me._config.debug === true ) {
+					// console.log("uploadfile response: ");
+					// console.log(response);
+				// }
+				// console.log(response);
+				// console.log(JSON.stringify(response));
+
+			// }).fail(function(xhr, status, err) {
+				// me._config.onError('Unable to upload file');
+			// });
+			
+		// }
     });
 };
