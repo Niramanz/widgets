@@ -4,7 +4,8 @@
 <title>Widgets</title>
 <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
 <meta content="width=device-width, initial-scale=1" name="viewport" />
-<script src="scripts/jquery-3.3.1.min.js"></script>
+<!-- <script src="scripts/jquery-3.3.1.min.js"></script> -->
+<script src="http://www3.truecorp.co.th/new/public/assets/truecorp/js/jquery-1.11.1.min.js"></script>
 <script src="config/config.js"></script>
 <script>
 	
@@ -158,6 +159,7 @@
 			chatServiceName: "gms-chat",
 			useCometD: false,
 			verbose: true,
+			debug:false,
 			onStarted: onStarted,
 			onEnded: onEnded,
 			<!-- onFileSent: onFileSent, -->
@@ -281,6 +283,13 @@
 		} 
 	});
 	
+	function attach(fileup){
+		
+		oChat.uploadfileChat(fileup);
+
+		oChat.getlimitfileChat();
+		//{"messages":[{"from":{"nickname":"Anonymous Anonymous","participantId":1,"type":"Client"},"text":"file-client-cfg-get","type":"Notice","utcTime":1548900353000,"userData":{"download-attempts":"10","upload-max-files":"10","delete-file":"odd","upload-max-file-size":"5242880","used-download-attempts":"0","used-upload-max-total-size":"0","upload-need-agent":"true","used-upload-max-files":"0","upload-max-total-size":"10485760","upload-file-types":"aac:bmp:csv:doc:docx:gif:htm:jpg:mp3:pdf:png:ppt:pptx:tif:txt:wmv:xls:xlsx"}}],"chatEnded":false,"statusCode":0,"alias":"210","secureKey":"79d1304a5fa6af9606cf","userId":"00D25C5257C2034B","chatId":"0002KaE4JJ9Y010T","nextPosition":3}
+	}
 	
 	
 </script>
@@ -295,8 +304,9 @@
 		<input type="hidden" name="product"/>
 		<input type="hidden" name="service"/>
 		<input type="hidden" name="service_number"/>
-		<input type="hidden" name="langChat" value="th"/>
-
+		<input type="hidden" name="SelectedLanguage" value="th"/>
+		<input type="hidden" name="GCTI_LanguageCode" value="th"/>
+		
 		<div id="wgChatbox" class="wgChatbox hide">
 			<div class="comfirm-end-background hide"></div>
 			<div class="comfirm-end-box hide">
@@ -317,12 +327,17 @@
 				</div>
 			</div>
 			<div class="wgChatbox-footer">
-				<span class="span1"></span>
+				<span class="span1">
+					<input type='file' onchange='attach(this.files);'/>
+						
+					
+				</span>
 				<span class="span2"><textarea placeholder="Type your massage" name="messagechat" rows="1"></textarea></span>
 				<span class="span3">
 					<button type='button' class="btn-none-style" onclick='sendMsg();'>
 						<img src="img/cursor.png"/>
 					</button>
+					
 				</span>
 			</div>
 		</div>
