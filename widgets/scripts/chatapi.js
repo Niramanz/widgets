@@ -33,12 +33,8 @@ var ChatFactory = function(config) {
 			this._chatapi.downloadfileChat(fileId,fileName);
 		},
 		
-		getlimitfileChat: function() {
-			this._chatapi.getlimitfileChat();
-		},
-		
-		uploadfileChat: function(fileup) {
-			this._chatapi.uploadfileChat(fileup);
+		getlimitfileChat: function(fileup) {
+			this._chatapi.getlimitfileChat(fileup);
 		}
 	}
 	
@@ -99,6 +95,15 @@ Chat.createAPIv2 = function(config) {
     	_alias: null,
     	_transcriptPosition: 1,
     	_chatRefreshIntervalId: null,
+		_downloadAttempts: null,
+		_uploadMaxFiles: null,
+		_uploadMaxFileSize: null,
+		_uploadMaxTotalSize: null,
+		_uploadNeedAgent: null,	
+		_uploadFileTypes: null,
+		_usedUploadMaxFiles: null,	
+		_usedUploadMaxTotalSize: null,
+		_usedDownloadAttempts: null,
     	
     	// Initialize the Chat API v2 Class
     	init: function(config) {
@@ -208,7 +213,7 @@ Chat.createAPIv2 = function(config) {
 			
 			me._chatRefreshIntervalId = setInterval( function() {
 				me._refreshChat();
-			}, 2000);
+			}, 5000);
 		},
 		
 		// Stop the interval object from making 'refresh' requests		
@@ -279,55 +284,76 @@ Chat.createAPIv2 = function(config) {
 			request.send(params);
 		},
 		
-		// getlimitfileChat: function() {
+		getlimitfileChat: function(fileup) {
         
-        	// var me = this;
+        	var me = this;
         
-        	// // Populate the parameters and URL
-			// var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
-			// var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/limits';
-	
-			// $.ajax({
-					// type: 'POST',
-					// url: url,
-					// contentType: 'application/x-www-form-urlencoded',
-					// data: params
-			// }).done(function(response, status, xhr) {
-				// if ( me._config.debug === true ) {
-					// console.log("getlimitfileChat response: ");
-					// console.log(response);
-				// }
-				// console.log(response);
-				// console.log(JSON.stringify(response));
+			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/limits';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("getlimitfileChat response -> "+JSON.stringify(request.response));
+					}
+			
+					var temp = request.response.messages[0].userData;
+					me._downloadAttempts = temp["download-attempts"];
+					me._uploadMaxFiles = temp["upload-max-files"];
+					me._uploadMaxFileSize = temp["upload-max-file-size"];
+					me._uploadMaxTotalSize = temp["upload-max-total-size"];
+					me._uploadNeedAgent = temp["upload-need-agent"];	
+					me._uploadFileTypes = temp["upload-file-types"];
+					me._usedUploadMaxFiles = temp["used-upload-max-files"];
+					me._usedUploadMaxTotalSize = temp["used-upload-max-total-size"];
+					me._usedDownloadAttempts = temp["used-download-attempts"];
+					console.log("_downloadAttempts => " + me._downloadAttempts)
+					console.log("_uploadMaxFiles => " + me._uploadMaxFiles)
+					console.log("_uploadMaxFileSize => " + me._uploadMaxFileSize)
+					console.log("_uploadMaxTotalSize => " + me._uploadMaxTotalSize)
+					console.log("_uploadNeedAgent => " + me._uploadNeedAgent)
+					console.log("_uploadFileTypes => " + me._uploadFileTypes)
+					console.log("_usedUploadMaxFiles => " + me._usedUploadMaxFiles)
+					console.log("_usedUploadMaxTotalSize => " + me._usedUploadMaxTotalSize)
+					console.log("_usedDownloadAttempts => " + me._usedDownloadAttempts)
+					me._uploadfileChat(fileup);
+				}
+			}
+			request.send(params);
+			
+			
+        },
 		
-			// }).fail(function(xhr, status, err) {
-				// me._config.onError('Unable to send getlimitfile');
-			// });
-        // },
-		
-		// uploadfileChat: function(fileup){
-			// var me = this;
+		_uploadfileChat: function(fileup){
+			var me = this;
+			//var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&file=' + fileup[0];
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file';		
+			var formData = new FormData();
+			formData.append('userId', me._userId);
+			formData.append('secureKey',me._secureKey);
+			formData.append('alias',me._alias);
+			formData.append('file',fileup[0]);
 			
-			// var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&file=' + fileup;
-			// var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url,true);
+			request.setRequestHeader("Accept","*/*");
+			// request.setRequestHeader("Content-Type",!1);
+			request.overrideMimeType("multipart/form-data;");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("uploadfile response -> "+JSON.stringify(request.response));
+					}
+					
+					console.log(JSON.stringify(request.response));
+				}
+			}
+			request.send(formData);
 			
-			// $.ajax({
-					// type: 'POST',
-					// url: url,
-					// contentType: 'application/x-www-form-urlencoded',
-					// data: params
-			// }).done(function(response, status, xhr) {
-				// if ( me._config.debug === true ) {
-					// console.log("uploadfile response: ");
-					// console.log(response);
-				// }
-				// console.log(response);
-				// console.log(JSON.stringify(response));
-
-			// }).fail(function(xhr, status, err) {
-				// me._config.onError('Unable to upload file');
-			// });
-			
-		// }
+		}
     });
 };
