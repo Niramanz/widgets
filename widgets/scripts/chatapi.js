@@ -33,8 +33,8 @@ var ChatFactory = function(config) {
 			this._chatapi.downloadfileChat(fileId,fileName);
 		},
 		
-		getlimitfileChat: function(fileup) {
-			this._chatapi.getlimitfileChat(fileup);
+		uploadfileChat: function(fileup) {
+			this._chatapi.uploadfileChat(fileup);
 		}
 	}
 	
@@ -141,7 +141,7 @@ Chat.createAPIv2 = function(config) {
 					
 					// Let listeners know that the chat session started successfully
 					me._config.onStarted();
-					
+					me._getlimitfileChat();
 					// Start the interval polling for transcript updates
 					me._startChatRefresh();
 					me._refreshChat();
@@ -266,6 +266,11 @@ Chat.createAPIv2 = function(config) {
 		
 		downloadfileChat: function(fileId,fileName){
 			var me = this;
+			
+			if(me._usedDownloadAttempts > me._downloadAttempts){
+				me._config.onMessageAlert(dataMessage["Error-Download-Attemps"])
+				return;
+			}
 			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/'+fileId+'/download';
 			const request = new XMLHttpRequest();
@@ -277,17 +282,15 @@ Chat.createAPIv2 = function(config) {
 					if ( me._config.debug === true ) {
 						console.log("downloadfileChat response -> "+JSON.stringify(request.response));
 					}
-					
+					me._getlimitfileChat();
 					me._config.onDownloadFile(request.response,fileName);
 				}
 			}
 			request.send(params);
 		},
 		
-		getlimitfileChat: function(fileup) {
-        
+		_getlimitfileChat: function() {
         	var me = this;
-        
 			var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file/limits';
 			const request = new XMLHttpRequest();
@@ -310,25 +313,37 @@ Chat.createAPIv2 = function(config) {
 					me._usedUploadMaxFiles = temp["used-upload-max-files"];
 					me._usedUploadMaxTotalSize = temp["used-upload-max-total-size"];
 					me._usedDownloadAttempts = temp["used-download-attempts"];
-					console.log("_downloadAttempts => " + me._downloadAttempts)
-					console.log("_uploadMaxFiles => " + me._uploadMaxFiles)
-					console.log("_uploadMaxFileSize => " + me._uploadMaxFileSize)
-					console.log("_uploadMaxTotalSize => " + me._uploadMaxTotalSize)
-					console.log("_uploadNeedAgent => " + me._uploadNeedAgent)
-					console.log("_uploadFileTypes => " + me._uploadFileTypes)
-					console.log("_usedUploadMaxFiles => " + me._usedUploadMaxFiles)
-					console.log("_usedUploadMaxTotalSize => " + me._usedUploadMaxTotalSize)
-					console.log("_usedDownloadAttempts => " + me._usedDownloadAttempts)
-					me._uploadfileChat(fileup);
 				}
 			}
-			request.send(params);
-			
-			
+			request.send(params);		
         },
 		
-		_uploadfileChat: function(fileup){
+		
+		uploadfileChat: function(fileup){
 			var me = this;
+			
+			if(fileup[0].size > me._usedUploadMaxFiles){
+				me._config.onMessageAlert(dataMessage["Error-Max-File-Size"])
+				return;
+			}
+			
+			var sptname =  fileup[0].name.split(".");
+			
+			if(me._uploadFileTypes.search(sptname[1]) == -1){
+				me._config.onMessageAlert(dataMessage["Error-File-Types"])
+				return;
+			}	
+			
+			if(me._usedUploadMaxFiles >= me._uploadMaxFiles){
+				me._config.onMessageAlert(dataMessage["Error-Upload-Max-Files"])
+				return;
+			}
+			
+			if(me._usedUploadMaxTotalSize >= me._uploadMaxTotalSize){
+				me._config.onMessageAlert(dataMessage["Error-Max-Total-Size"])
+				return;
+			}
+			
 			//var params = 'userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&file=' + fileup[0];
 			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/file';		
 			var formData = new FormData();
@@ -348,8 +363,7 @@ Chat.createAPIv2 = function(config) {
 					if ( me._config.debug === true ) {
 						console.log("uploadfile response -> "+JSON.stringify(request.response));
 					}
-					
-					console.log(JSON.stringify(request.response));
+					me._getlimitfileChat();
 				}
 			}
 			request.send(formData);
