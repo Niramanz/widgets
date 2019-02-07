@@ -162,7 +162,6 @@
 			debug:false,
 			onStarted: onStarted,
 			onEnded: onEnded,
-			<!-- onFileSent: onFileSent, -->
 			onMessageReceived: onMessageReceived,
 			onFileReceived: onFileReceived,
 			onError: onError,
@@ -284,13 +283,8 @@
 	});
 	
 	function attach(fileup){
-		
-		oChat.uploadfileChat(fileup);
-
-		oChat.getlimitfileChat();
-		//{"messages":[{"from":{"nickname":"Anonymous Anonymous","participantId":1,"type":"Client"},"text":"file-client-cfg-get","type":"Notice","utcTime":1548900353000,"userData":{"download-attempts":"10","upload-max-files":"10","delete-file":"odd","upload-max-file-size":"5242880","used-download-attempts":"0","used-upload-max-total-size":"0","upload-need-agent":"true","used-upload-max-files":"0","upload-max-total-size":"10485760","upload-file-types":"aac:bmp:csv:doc:docx:gif:htm:jpg:mp3:pdf:png:ppt:pptx:tif:txt:wmv:xls:xlsx"}}],"chatEnded":false,"statusCode":0,"alias":"210","secureKey":"79d1304a5fa6af9606cf","userId":"00D25C5257C2034B","chatId":"0002KaE4JJ9Y010T","nextPosition":3}
+		oChat.getlimitfileChat(fileup);		
 	}
-	
 	
 </script>
 </head>
