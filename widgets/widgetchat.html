@@ -100,6 +100,14 @@
 		$('.comfirm-end-inside button[name="btn-end"]').text("End Chat");
 	}
 	
+	function onMessageAlert(xx){
+		$(".comfirm-end-background").removeClass("hide");
+		$(".comfirm-end-box").removeClass("hide");
+		$('.comfirm-end-inside span').text(xx);
+		//$('.comfirm-end-inside button[name="btn-cancel"]').text("Cancel");
+		//$('.comfirm-end-inside button[name="btn-end"]').text("End Chat");
+	}
+	
 	function closeConfirmEnd(){
 		$(".comfirm-end-background").addClass("hide");
 		$(".comfirm-end-box").addClass("hide");
@@ -165,7 +173,8 @@
 			onMessageReceived: onMessageReceived,
 			onFileReceived: onFileReceived,
 			onError: onError,
-			onDownloadFile:onDownloadFile
+			onDownloadFile:onDownloadFile,
+			onMessageAlert:onMessageAlert
 		});
 		// Start the chat using the variable in form.
 		oChat.startChat(formchat);
@@ -223,7 +232,6 @@
 		
 		var msg = "";
 		var filesize = (parseInt(udata["file-size"])/1024).toFixed(2);
-		//message : {"from":{"nickname":"agent","participantId":2,"type":"Agent"},"index":10,"text":"00D25C4FD5580141","type":"FileUploaded","utcTime":1548735832000,"userData":{"file-document-id":"0002KaE4JJ9Y00BX","file-source":"ucs","file-upload-path":"C:\\Users\\Administrator\\Desktop\\New Text Document.txt","file-id":"00D25C4FD5580141","file-upload-type":"file-system","file-size":"438","file-name":"New Text Document.txt"}}
 		msg = udata["file-name"]
 			+ "<br/>"
 			+ filesize+" KB"
@@ -283,7 +291,7 @@
 	});
 	
 	function attach(fileup){
-		oChat.getlimitfileChat(fileup);		
+		oChat.uploadfileChat(fileup);		
 	}
 	
 </script>
