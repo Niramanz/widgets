@@ -133,7 +133,27 @@
 			$("input[name=subject]").val(text);
 			createMessage(wgMsgCustomer,text);
 		} else{
-			oChat.sendMessage(text);
+			
+			var isUrl = false;
+			webSystax.forEach(function(x){
+				if(text.search(x) != -1){
+					isUrl = true;
+					return;
+				}
+			});
+			
+			if(isUrl){
+				
+				if(text.search("http://") == -1){
+					text = "http://"+text;
+				} else if(text.search("https://") == -1){
+					text = "https://"+text;
+				}
+				
+				oChat.pushUrlChat(text);
+			} else{
+				oChat.sendMessage(text);
+			}
 		}
 
 		
@@ -201,9 +221,15 @@
 		} else if ( typeMsg === 'ParticipantLeft' || typeMsg === 'Notice.Left') {
 			msg = dataMessage["Leftchat"];
 		} else if ( typeMsg === 'PushUrl' || typeMsg === 'PushUrl.Text' ) {
-			msg = "<a href='"+textMsg+"'>"+textMsg+"</a>";
+			msg = "<a href='"+textMsg+"' target='_blank' >"+textMsg+"</a>";
+		} else if ( typeMsg === 'Notice' || typeMsg === 'Notice.Text' ) {
+			msg = textMsg;
 		}
     
+	if(typeFrom === "Client" && typeMsg === "TypingStarted") return;
+	if(typeFrom === "Client" && typeMsg === "TypingStopped") return;
+	if(typeFrom === "Client" && msg === "read-confirm") return;
+	
     if(typeFrom === "Agent" && typeMsg === "TypingStarted"){
 		if(!document.getElementById('liAgentTyping')){
 			typingMessage(wgMsgAgent,dataMessage["typing"]);
@@ -288,6 +314,19 @@
 		if ( e.which == 13 ) {
 			e.preventDefault();sendMsg();
 		} 
+	});
+	
+	$(document).on('keydown','textarea[name=messagechat]',function(e) { 
+		if(oChatStart){
+			oChat.startTypingChat();
+		}
+	});
+	
+	$(document).on('keyup','textarea[name=messagechat]',function(e) { 
+		if(oChatStart){
+			oChat.stopTypingChat();
+		}
+
 	});
 	
 	function attach(fileup){
