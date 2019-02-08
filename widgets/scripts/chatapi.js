@@ -35,6 +35,18 @@ var ChatFactory = function(config) {
 		
 		uploadfileChat: function(fileup) {
 			this._chatapi.uploadfileChat(fileup);
+		},
+		startTypingChat: function(){
+				this._chatapi.startTypingChat();
+		},
+		stopTypingChat: function(){
+				this._chatapi.stopTypingChat();
+		},
+		pushUrlChat: function(url) {
+			this._chatapi.pushUrlChat(url);
+		},
+		updateUserDataChat: function(url) {
+			this._chatapi.updateUserDataChat(url);
 		}
 	}
 	
@@ -128,14 +140,13 @@ Chat.createAPIv2 = function(config) {
 			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
 			request.onreadystatechange = function() {
 				if(request.readyState == 4 && request.status == 200) {
-					if ( me._config.debug === true ) {
+					//if ( me._config.debug === true ) {
 						console.log("startChat response -> "+JSON.stringify(request.response));
-					}
+					//}
 					me._chatId = request.response.chatId;
 					me._userId = request.response.userId;
 					me._secureKey = request.response.secureKey;
 					me._alias = request.response.alias;
-					
 					// Save off the transcript position
 					me._transcriptPosition = 1;
 					
@@ -368,6 +379,117 @@ Chat.createAPIv2 = function(config) {
 			}
 			request.send(formData);
 			
-		}
+		},
+		
+		 startTypingChat: function() {
+        
+        	var me = this;
+        
+        	// Populate the parameters and URL
+			var params = '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/startTyping';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("startTyping response -> "+JSON.stringify(request.response));
+					}
+					
+					me._readReceiptChat();
+				}
+			}
+			request.send(params);
+        },
+		
+		 stopTypingChat: function() {
+        
+        	var me = this;
+        
+        	// Populate the parameters and URL
+			var params = '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/stopTyping';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("stopTyping response -> "+JSON.stringify(request.response));
+					}
+				}
+			}
+			request.send(params);
+        },
+		
+		_readReceiptChat: function() {
+        
+        	var me = this;
+        
+        	// Populate the parameters and URL
+			var params = '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&transcriptPosition=' + me._transcriptPosition;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/readReceipt';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("readReceipt response -> "+JSON.stringify(request.response));
+					}
+				}
+			}
+			request.send(params);
+        },
+		
+		pushUrlChat: function(url) {
+        
+        	var me = this;
+        
+        	// Populate the parameters and URL
+			var params = '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + '&pushUrl=' + url;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/pushUrl';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("pushUrl response -> "+JSON.stringify(request.response));
+					}
+				}
+			}
+			request.send(params);
+        },
+		
+		updateUserDataChat: function(arrData) {
+        
+			var uData = "";
+			for(var key in arrData){
+				uData += "&userData[\""+key+"\"] = "+arrData[key];
+			}
+        	var me = this;
+        	// Populate the parameters and URL
+			var params = '&userId=' + me._userId + '&secureKey=' + me._secureKey + '&alias=' + me._alias + uData;
+			var url = me._config.baseURL + '/chat/' + me._config.chatServiceName + '/' + me._chatId + '/updateData';
+			const request = new XMLHttpRequest();
+			request.responseType = "json";
+			request.open("POST", url);
+			request.setRequestHeader("Content-Type","application/x-www-form-urlencoded");
+			request.onreadystatechange = function() {
+				if(request.readyState == 4 && request.status == 200){ 
+					if ( me._config.debug === true ) {
+						console.log("updateData response -> "+JSON.stringify(request.response));
+					}
+				}
+			}
+			request.send(params);
+        }
+		
     });
 };
